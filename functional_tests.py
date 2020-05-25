@@ -1,4 +1,6 @@
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import time
 import unittest
 
 class NewVisitorTest(unittest.TestCase):
@@ -15,20 +17,35 @@ class NewVisitorTest(unittest.TestCase):
 
         #她注意到网页的标题和头部都包含“待办事项”这个词
         self.assertIn('待办事项' ,self.browser.title)
+        head_text=self.browser.find_element_by_tag_name('h1').text
+        self.assertIn('待办事项' ,head_text)
         
-        self.fail('结束测试')
-
         #应用邀请她输入一个待办事项
+        inputbox=self.browser.find_element_by_id('id_new_item')
+        self.assertEqual(
+            inputbox.get_attribute('placeholder'),
+            '请输入待办事项'
+        )
 
-        #她在一个文本框中输入了“Buypeacockfeathers”（购买孔雀羽毛）
+        #她在一个文本框中输入了“购买孔雀羽毛”
         #伊迪丝的爱好是使用假蝇做饵钓鱼
+        inputbox.send_keys('购买孔雀羽毛')
 
         #她按回车键后，页面更新了
-        #待办事项表格中显示了“1:Buypeacockfeathers”
+        #待办事项表格中显示了“1、购买孔雀羽毛”
+        inputbox.send_keys(Keys.ENTER)
+        time.sleep(1)
+        
+        table=self.browser.find_element_by_id('id_list_table')
+        rows=table.find_elements_by_tag_name('tr')
+        self.assertTrue(
+            any(row.text=='1、购买孔雀羽毛' for row in rows)
+        )
 
         #页面中又显示了一个文本框，可以输入其他的待办事项
         #她输入了“Usepeacockfeatherstomakeafly”（使用孔雀羽毛做假蝇）
         #伊迪丝做事很有条理
+        self.fail('结束测试')
 
         #页面再次更新，她的清单中显示了这两个待办事项
 
@@ -39,6 +56,7 @@ class NewVisitorTest(unittest.TestCase):
         #她访问那个URL，发现她的待办事项列表还在
 
         #她很满意，去睡觉了
-
+        
+        
 if __name__=="__main__":
     unittest.main()
