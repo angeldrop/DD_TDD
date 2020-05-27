@@ -16,9 +16,9 @@ class NewVisitorTest(unittest.TestCase):
         self.browser.get('http://localhost:8001')
 
         #她注意到网页的标题和头部都包含“待办事项”这个词
-        self.assertIn('待办事项' ,self.browser.title)
+        self.assertIn('待办事项系统' ,self.browser.title)
         head_text=self.browser.find_element_by_tag_name('h1').text
-        self.assertIn('待办事项' ,head_text)
+        self.assertIn('你的清单' ,head_text)
         
         #应用邀请她输入一个待办事项
         inputbox=self.browser.find_element_by_id('id_new_item')
@@ -39,7 +39,8 @@ class NewVisitorTest(unittest.TestCase):
         table=self.browser.find_element_by_id('id_list_table')
         rows=table.find_elements_by_tag_name('tr')
         self.assertTrue(
-            any(row.text=='1、购买孔雀羽毛' for row in rows)
+            any(row.text=='1、购买孔雀羽毛' for row in rows),
+            '没有显示新的条目到表格'
         )
 
         #页面中又显示了一个文本框，可以输入其他的待办事项
