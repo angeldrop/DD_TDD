@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <title>待办事项系统</title>
+    </head>
+    <body>
+        <h1>你的清单</h1>
+        <form method="POST">
+            {%  csrf_token %}
+            <input id="id_new_item" name="item_text" placeholder="Enter a to-do item" />
+        </form>
+        <table id="id_list_table">
+            <tr><td>1:{{ new_item_text }}</td></tr>
+        </table>
+    </body>
+</html>
