@@ -66,7 +66,6 @@ class NewVisitorTest(LiveServerTestCase):
         #页面再次更新，她的清单中显示了这两个待办事项
         self.wait_for_row_in_list_table('1:购买孔雀羽毛')
         self.wait_for_row_in_list_table('2:使用孔雀羽毛做假蝇')
-        self.browser.quit()
         
         
     def test_multiple_users_can_start_lists_at_different_urls(self):
