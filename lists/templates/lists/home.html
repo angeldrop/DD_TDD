@@ -4,7 +4,7 @@
 </head>
 <body>
     <h1>开始一个新的你的清单</h1>
-    <form method="POST" action="/">
+    <form method="POST" action="/lists/new">
         <input id="id_new_item" name="item_text" placeholder="请输入待办事项"/>
         {% csrf_token %}
     </form>

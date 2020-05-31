@@ -4,7 +4,7 @@
 </head>
 <body>
     <h1>你的清单</h1>
-    <form method="POST" action="/">
+    <form method="POST" action="/lists/the-only-list-in-the-world/">
         <input id="id_new_item" name="item_text" placeholder="请输入待办事项"/>
         {% csrf_token %}
     </form>
