@@ -33,11 +33,22 @@ class NewVisitorTest(LiveServerTestCase):
         #伊迪丝听说有一个很酷的在线待办事项应用
         #她去看了这个应用的首页
         self.browser.get(self.live_server_url)
+        self.browser.set_window_size(1024,768)
 
         #她注意到网页的标题和头部都包含“待办事项”这个词
         self.assertIn('待办事项系统' ,self.browser.title)
         head_text=self.browser.find_element_by_tag_name('h1').text
         self.assertIn('你的清单' ,head_text)
+        
+        #她注意到输入框完美的居中显示
+        inputbox=self.browser.find_element_by_id('id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x']+inputbox.size['width']/2,
+            512,
+            delta=10
+            )
+        
+        
 
         #应用邀请她输入一个待办事项
         inputbox=self.browser.find_element_by_id('id_new_item')
@@ -54,6 +65,13 @@ class NewVisitorTest(LiveServerTestCase):
         #待办事项表格中显示了“1、购买孔雀羽毛”
         inputbox.send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1:购买孔雀羽毛')
+        #输入框依然完美的居中显示
+        inputbox=self.browser.find_element_by_id('id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x']+inputbox.size['width']/2,
+            512,
+            delta=10
+            )
 
         #页面中又显示了一个文本框，可以输入其他的待办事项
         #她输入了“使用孔雀羽毛做假蝇”
