@@ -7,7 +7,7 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/base.css">
+    <!-- <link rel="stylesheet" href="/static/base.css"> -->
 
 
     <title>待办事项系统</title>
@@ -15,9 +15,9 @@
   <body>
     <div class="container ">
         <div class="row">
-            <div class="jumbotron col-md">
+            <div class="jumbotron col-md-10 mx-auto">
                 <div class="text-center">
-                    <h1>{% block header_text %}{% endblock %}</h1>
+                    <h1 class="pb-3">{% block header_text %}{% endblock %}</h1>
                     <form method="POST" action="{% block form_action %}{% endblock %}">
                         <input id="id_new_item" name="item_text" class="form-control -lg" placeholder="请输入待办事项"/>
                         {% csrf_token %}
@@ -27,7 +27,7 @@
         </div>
         
         <div class="row">
-            <div class="col-md">
+            <div class="col-md-10 offset-md-1">
                     {% block table %}
                     {% endblock %}
             </div>
