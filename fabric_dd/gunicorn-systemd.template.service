@@ -1,0 +1,20 @@
+[Unit]
+Description=Gunicorn server for www.caylxxkj.xyz
+
+[Service]
+Restart=on-failure
+User=django_dd
+WorkingDirectory=/home/django_dd/sites/www.caylxxkj.xyz
+
+Environment=DJANGO_DEBUG_FALSE=y
+Environment=DJANGO_SECRET_KEY="1*b84qe7z%4v)(_ji01k^_xx2tkhs062zpsza9gpzl3rxdfhfv"
+Environment=SITENAME=www.caylxxkj.xyz
+Environment=EMAIL_PASSWORD=66Dan;12306666
+
+ExecStart=/home/django_dd/sites/www.caylxxkj.xyz/virtualenv/bin/gunicorn \
+    --access-logfile access.log \
+    --error-logfile error.log \
+    superlists.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
