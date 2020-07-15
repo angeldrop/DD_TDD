@@ -31,12 +31,12 @@ def pip3_local_install(user,mod,mod_dir):
     安装完成后删除文件夹
     '''
     if user=='root':
-        conn.run('pip3 install '+mod+' --no-index --find-links=file:///'+user+'/'+mod_dir)
-        conn.run('rm -rf '+'/'+user+'/'+mod_dir)
+        conn.run(f'pip3 install {mod} --no-index --find-links=file:///{user}/{mod_dir}')
+        conn.run(f'rm -rf /{user}/{mod_dir}')
     else:
-        conn.run('pip3 install '+mod+' --no-index --find-links=file:///home'+'/'+user+'/'+mod_dir)
-        conn.run('rm -rf '+'/home'+'/'+user+'/'+mod_dir)
-    
+        conn.run(f'pip3 install {mod} --no-index --find-links=file:///home/{user}/{mod_dir}')
+        conn.run(f'rm -rf /home/{user}/{mod_dir}')
+
 
 
 def excute_any(command,conn):
@@ -49,14 +49,15 @@ def excute_any(command,conn):
 
 
 def sed_on_vsftpd_config(newtext,newtext_value,conn,filepath='/etc/vsftpd/vsftpd.conf'):
-    if not newtext+'=' in conn.run('cat '+filepath+' | grep -v "#"').stdout:
-        conn.run("sed -i '$a "+newtext+'='+newtext_value+"' "+filepath)
-    try:
-        next_grep=conn.run('cat '+filepath+' | grep -v "#" | grep "'+newtext+'='+newtext_value+'"').stdout
-    except:
-        next_grep=''
-    if not newtext+'='+newtext_value in next_grep: 
-        conn.run("sed -i 's/"+newtext+r'.*'+"/"+newtext+'='+newtext_value+"/g' "+filepath)
+    if not f'{newtext}=' in conn.run(f'cat {filepath} | grep -v "#"').stdout:
+        conn.run(f"sed -i '$a {newtext}={newtext_value}' {filepath}")
+    else:
+        try:
+            next_grep=conn.run(f'cat {filepath} | grep -v "#" | grep "{newtext}={newtext_value}"').stdout
+        except:
+            next_grep=''
+        if not f'{newtext}={newtext_value}' in next_grep: 
+            conn.run(fr"sed -i 's/{newtext}.*/{newtext}={newtext_value}/g' {filepath}")
 
 
 def make_file_upload_and_delete(filename,strdd,target_filename,conn):
@@ -65,6 +66,7 @@ def make_file_upload_and_delete(filename,strdd,target_filename,conn):
     '''
     with open(filename,'wb') as f:
         f.write(strdd.encode())
+        f.close()
     conn.put(filename,target_filename)
     os.remove(filename)
 
@@ -77,13 +79,12 @@ password='Dan;06623QQ'
 hostname='DDWebHost'
 web_user='django_dd'
 web_user_pass='Dan;06623'
-dd_sudo='sudo -u '+web_user+' '
 postgres_pass='Dan;06623'
+
+
+
 conn=Connection(host, user=user,connect_kwargs={"password": password})
 conn.run('ls -a')
-
-
-
 
 
 conn.run('hostname '+hostname)    #修改主机名称
@@ -187,16 +188,16 @@ conn.run("mkdir -p /root/.pip/")
 conn.run("mkdir -p /root/.pip3/")
 make_file_upload_and_delete('pip.conf',strdd,'/root/.pip/pip.conf',conn)
 make_file_upload_and_delete('pip3.conf',strdd,'/root/.pip3/pip3.conf',conn)
-conn.run('python3 -m pip3 install --upgrade pip')
+conn.run('pip3 install --upgrade pip')
 
-"""
+
 
 #安装fabric
 
 
-put_file('fabric-linux-CentOS.zip',conn)
-conn.run('unzip fabric-linux-CentOS.zip')
-pip3_local_install(user,'fabric','fabric-linux-CentOS')
+put_file('fabric-linux-CentOS7.zip',conn)
+conn.run('unzip fabric-linux-CentOS7.zip')
+pip3_local_install(user,'fabric','fabric-linux-CentOS7')
 
 
 
@@ -205,9 +206,9 @@ pip3_local_install(user,'fabric','fabric-linux-CentOS')
 #安装virtualenv
 
 
-put_file('virtualenv-linux-CentOS.zip',conn)
-conn.run('unzip virtualenv-linux-CentOS.zip')
-pip3_local_install(user,'virtualenv','virtualenv-linux-CentOS')
+put_file('virtualenv-linux-CentOS7.zip',conn)
+conn.run('unzip virtualenv-linux-CentOS7.zip')
+pip3_local_install(user,'virtualenv','virtualenv-linux-CentOS7')
 
 
 #安装psycopg2，postgresql需要
@@ -326,7 +327,7 @@ excute_any('useradd -g ftp -d /home/ylkj_ftp/yl_ftp yl',conn)
 excute_any('usermod -s /bin/bash yl',conn)    #使ftp用户无法登陆系统
 conn.run("echo 'yl:123123' | chpasswd")
 conn.run("chmod u=rx,g=rwx,o=rx /home/ylkj_ftp/yl_ftp")
-#限制最大同时上线人数，每个IP最多使用一条数据连接
+#限制最大同时上线人数，每个IP最多使用5条数据连接
 
 sed_on_vsftpd_config('max_clients','45',conn)
 sed_on_vsftpd_config('max_per_ip','5',conn)
@@ -360,14 +361,14 @@ conn.run('timedatectl set-local-rtc 1')
 excute_any('ntpdate 10.24.252.250',conn)      #和下联区电信路由同步
 excute_any('ntpdate 10.24.252.252',conn)      #和核心区SW1同步
 excute_any('ntpdate 10.24.1.221',conn)      #和核心区ftp服务器同步
-excute_any('ntpdate cn.ntp.org.cn',conn)      #和外网服务器同步
+excute_any('ntpdate ntp.aliyun.com',conn)      #和外网服务器同步
 
 conn.run('yum install chrony -y')
 strdd='''# Use public servers from the pool.ntp.org project.
 # Please consider joining the pool (http://www.pool.ntp.org/join.html).
 server 10.24.252.250 iburst
 server 10.24.252.252 iburst
-server cn.ntp.org.cn iburst
+server ntp.aliyun.com iburst
 
 # Record the rate at which the system clock gains/losses time.
 driftfile /var/lib/chrony/drift
@@ -447,10 +448,10 @@ put_file('postgresql12-linux-CentOS7.zip',conn)
 conn.run('unzip postgresql12-linux-CentOS7.zip')
 with conn.cd('postgresql12-linux-CentOS7'):
 # 安装离线文件
-    conn.run('yum install postgresql12-libs-12.2-2PGDG.rhel7.x86_64.rpm -y')
-    conn.run('yum install postgresql12-12.2-2PGDG.rhel7.x86_64.rpm -y')
-    conn.run('yum install postgresql12-server-12.2-2PGDG.rhel7.x86_64.rpm -y')
-    conn.run('yum install postgresql12-contrib-12.2-2PGDG.rhel7.x86_64.rpm -y')
+    conn.run('yum install postgresql12-libs-12.3-5PGDG.rhel7.x86_64.rpm -y')
+    conn.run('yum install postgresql12-12.3-5PGDG.rhel7.x86_64.rpm -y')
+    conn.run('yum install postgresql12-server-12.3-5PGDG.rhel7.x86_64.rpm -y')
+    conn.run('yum install postgresql12-contrib-12.3-5PGDG.rhel7.x86_64.rpm -y')
 conn.run('rm -rf postgresql-linux-CentOS7')
     
 excute_any('/usr/pgsql-12/bin/postgresql-12-setup initdb',conn)    #初始化数据库
@@ -468,29 +469,36 @@ conn.run(f'mkdir -p {database_dd_dir}')
 
 
 
-#进入postgres用户部署应用，需要手工操作
-input('手工部署postgres后按回车继续')
+
 
 
 # 修改允许远程登录修改/var/lib/pgsql/12/data/pg_hba.conf，postgresql.conf，在版本号/data文件夹下
+   
 # pg_hba.conf在IPV4 connection处添加容许本地和远程密码登录的用户密码登录
 # host    all             all             127.0.0.1/32            password或者md5
 # host    all             all             0.0.0.0/0            password或者md5
-# postgresql.conf在Connection处添加所有ip,并打开监听端口5432
-# listen_addresses = '*'
-# port = 5432
+conn.run(r"sed -ri 's/(host.*127.0.0.1.*)(ident$)/\1md5\nhost    all             all             0.0.0.0\/0            md5/g' /var/lib/pgsql/12/data/pg_hba.conf")
+
+#postgresql.conf在Connection处添加所有ip,并打开监听端口5432
+sed_str=r"s/#? ?(listen_addresses = )('.*')(.*)/\1'*'\3/g"
+conn.run(fr'sed -ri "{sed_str}" /var/lib/pgsql/12/data/postgresql.conf')
+conn.run(r"sed -ri 's/#? ?(port = )(.*)/\15432/g' /var/lib/pgsql/12/data/postgresql.conf")
 #修改数据库保存目录
-#data_directory = '/home/database_dd'
+sed_str=r"s/#? ?(data_directory = )('.*')(.*)/\1'\/home\/database_dd'\3/g"
+conn.run(fr'sed -ri "{sed_str}" /var/lib/pgsql/12/data/postgresql.conf')
 
 
 
+
+#进入postgres用户部署应用，需要手工操作
+input("手工进入postgres配置参数，完成后回车！！！")
 #进入psql，并设置postgres密码，代码如下
+# su - postgres
 # psql
 # ALTER USER postgres WITH PASSWORD 'Yl;123456';
-#配置给django数据库
-# CREATE DATABASE dddatabase;
+# # 配置给django数据库
+# CREATE DATABASE superlist_dd;
 # \q
-
 
 
 #需要拷贝原data文件夹到修改后数据库文件夹并修改权限
@@ -498,15 +506,12 @@ conn.run(f'cp -r /var/lib/pgsql/12/data/* {database_dd_dir}')
 conn.run(f'chown -R postgres:postgres {database_dd_dir}')
 conn.run(f'chmod 700 -R {database_dd_dir}')
 
+
 #重启postgressql服务，安全系数不高，不需要时删除0.0.0.0设置。
 conn.run('systemctl restart postgresql-12')
 #开放防火墙给postgresql
 # conn.run('firewall-cmd --add-port=5432 --permanent')
 # conn.run('firewall-cmd --reload')
-
-
-
-"""
 
 
 

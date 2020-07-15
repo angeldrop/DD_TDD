@@ -16,12 +16,12 @@ def pip3_local_install(user,mod,mod_dir):
     安装完成后删除文件夹
     '''
     if user=='root':
-        conn.run('pip3 install '+mod+' --no-index --find-links=file:///'+user+'/'+mod_dir)
-        conn.run('rm -rf '+'/'+user+'/'+mod_dir)
+        conn.run(f'pip3 install {mod} --no-index --find-links=file:///{user}/{mod_dir}')
+        conn.run(f'rm -rf /{user}/{mod_dir}')
     else:
-        conn.run('pip3 install '+mod+' --no-index --find-links=file:///home'+'/'+user+'/'+mod_dir)
-        conn.run('rm -rf '+'/home'+'/'+user+'/'+mod_dir)
-    
+        conn.run(f'pip3 install {mod} --no-index --find-links=file:///home/{user}/{mod_dir}')
+        conn.run(f'rm -rf /home/{user}/{mod_dir}')
+
 
 
 def excute_any(command,conn):
@@ -34,14 +34,14 @@ def excute_any(command,conn):
 
 
 def sed_on_vsftpd_config(newtext,newtext_value,conn,filepath='/etc/vsftpd/vsftpd.conf'):
-    if not newtext+'=' in conn.run('cat '+filepath+' | grep -v "#"').stdout:
-        conn.run("sed -i '$a "+newtext+'='+newtext_value+"' "+filepath)
+    if not f'{newtext}=' in conn.run(f'cat {filepath} | grep -v "#"').stdout:
+        conn.run(f"sed -i '$a {newtext}={newtext_value}' {filepath}")
     try:
-        next_grep=conn.run('cat '+filepath+' | grep -v "#" | grep "'+newtext+'='+newtext_value+'"').stdout
+        next_grep=conn.run(f'cat {filepath} | grep -v "#" | grep "{newtext}={newtext_value}"').stdout
     except:
         next_grep=''
     if not newtext+'='+newtext_value in next_grep: 
-        conn.run("sed -i 's/"+newtext+r'.*'+"/"+newtext+'='+newtext_value+"/g' "+filepath)
+        conn.run(fr"sed -i 's/{newtext}.*/{newtext}={newtext_value}/g' {filepath}")
 
 
 def make_file_upload_and_delete(filename,strdd,target_filename,conn):
@@ -50,8 +50,10 @@ def make_file_upload_and_delete(filename,strdd,target_filename,conn):
     '''
     with open(filename,'wb') as f:
         f.write(strdd.encode())
+        f.close()
     conn.put(filename,target_filename)
     os.remove(filename)
+
 
 
 
@@ -71,108 +73,52 @@ conn.run('yum install git -y')    #安装git
 #安装nigix要点（用户名的更改、/和/static的设置）
 
 conn.run('yum install nginx -y')
-conn.run('mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf_back')
-strdd='''# For more information on configuration, see:
-#   * Official English Documentation: http://nginx.org/en/docs/
-#   * Official Russian Documentation: http://nginx.org/ru/docs/
 
-user django_dd;
-worker_processes auto;
-error_log /var/log/nginx/error.log;
-pid /run/nginx.pid;
 
-# Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.
-include /usr/share/nginx/modules/*.conf;
 
-events {
-    worker_connections 1024;
-}
+conn.run('cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf_back')
 
-http {
-    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                      '$status $body_bytes_sent "$http_referer" '
-                      '"$http_user_agent" "$http_x_forwarded_for"';
 
-    access_log  /var/log/nginx/access.log  main;
 
-    sendfile            on;
-    tcp_nopush          on;
-    tcp_nodelay         on;
-    keepalive_timeout   65;
-    types_hash_max_size 2048;
 
-    include             /etc/nginx/mime.types;
-    default_type        application/octet-stream;
 
-    # Load modular configuration files from the /etc/nginx/conf.d directory.
-    # See http://nginx.org/en/docs/ngx_core_module.html#include
-    # for more information.
-    include /etc/nginx/conf.d/*.conf;
+# 修改配置文件为web用户可配置并添加配置文件目录到HTTP块
+conn.run(fr"sed -i 's/user .*;/user {web_user};/g' /etc/nginx/nginx.conf")
+conn.run(r"sed -ri 's/(include .*mime.types;)/\1\n    include             \/etc\/nginx\/sites-enabled\/*;/g' /etc/nginx/nginx.conf")
 
-    server {
-        listen       80 default_server;
-        listen       [::]:80 default_server;
-        server_name  _;
-        root         /usr/share/nginx/html;
+# 新建配置文件夹
+conn.run('mkdir -p /etc/nginx/sites-availiable')
+conn.run('mkdir -p /etc/nginx/sites-enabled')
+domain_name='www.caylxxkj.xyz'
 
-        # Load configuration files for the default server block.
-        include /etc/nginx/default.d/*.conf;
-
-        location / {
-            # proxy_pass http://unix:/tmp/www.caylxxkj.xyz.socket;
-            # proxy_set_header Host $host;
-            proxy_pass http://localhost:8000;
-        }
-
-        location /static {
+#添加文件，并写入配置
+conn.run(f'touch /etc/nginx/sites-availiable/{domain_name}')
+strdd='''
+server {
+    listen 80;
+    server_name www.caylxxkj.xyz;
+    location / {
+        proxy_pass http://localhost:8000;
+    }
+    
+    location /static {
             
             alias /home/django_dd/sites/ylkjddtestweb/static;
-        }
-
-        error_page 404 /404.html;
-            location = /40x.html {
-        }
-
-        error_page 500 502 503 504 /50x.html;
-            location = /50x.html {
-        }
     }
-
-# Settings for a TLS enabled server.
-#
-#    server {
-#        listen       443 ssl http2 default_server;
-#        listen       [::]:443 ssl http2 default_server;
-#        server_name  _;
-#        root         /usr/share/nginx/html;
-#
-#        ssl_certificate "/etc/pki/nginx/server.crt";
-#        ssl_certificate_key "/etc/pki/nginx/private/server.key";
-#        ssl_session_cache shared:SSL:1m;
-#        ssl_session_timeout  10m;
-#        ssl_ciphers HIGH:!aNULL:!MD5;
-#        ssl_prefer_server_ciphers on;
-#
-#        # Load configuration files for the default server block.
-#        include /etc/nginx/default.d/*.conf;
-#
-#        location / {
-#        }
-#
-#        error_page 404 /404.html;
-#            location = /40x.html {
-#        }
-#
-#        error_page 500 502 503 504 /50x.html;
-#            location = /50x.html {
-#        }
-#    }
-
+    
 }
 
-'''
 
-make_file_upload_and_delete('nginx.conf',strdd,'/etc/nginx/nginx.conf',conn)
+'''
+make_file_upload_and_delete(domain_name,strdd,f'/etc/nginx/sites-availiable/{domain_name}',conn)
+# conn.run(f"sed -i '$a {strdd}' /etc/nginx/sites-availiable/{domain_name}")
+
+
+
+
+excute_any(f'ln -s /etc/nginx/sites-availiable/{domain_name} /etc/nginx/sites-enabled/{domain_name}',conn)
+
+
 
 conn.run('systemctl restart nginx')
 
@@ -218,7 +164,7 @@ conn.run('source .bashrc')
 
 
 
-REPO_URL = 'https://github.com/angeldrop/test_a_site_source'
+REPO_URL = 'https://github.com/angeldrop/DD_TDD.git'
 
 
 def deploy(conn):
@@ -228,7 +174,7 @@ def deploy(conn):
         _create_directory_structure_if_necessary(conn)
     with conn.cd(f'{site_folder}/source/'):
         _get_latest_source(conn)
-        _update_settings(r"['localhost',]",conn)
+        _update_settings(r"['www.caylxxkj.xyz','localhost','127.0.0.1']",conn)
         _update_virtualenv(conn)
         _update_static_files(conn)
         _update_database(conn)
@@ -241,11 +187,11 @@ def _create_directory_structure_if_necessary(conn):
 
 def _get_latest_source(conn):
     if int(conn.run("[ -e '.git' ] && echo 11 || echo 10").stdout)==11:    #如果存在
-        conn.run(f'git fetch')
+        conn.run('git fetch')
     else:
         conn.run(f'git clone {REPO_URL} .')
     # current_commit = conn.local("git log -n 1 --format=%H", capture=True)
-    conn.run(f'git pull')
+    conn.run('git pull')
 
 
 def _update_virtualenv(conn):
@@ -258,16 +204,16 @@ def _update_virtualenv(conn):
 
 def _update_settings(site_name,conn):
     settings_path='superlists/settings.py'
-    conn.run(f"sed -i 's/DEBUG = True/DEBUG = False/g' "+settings_path)
-    conn.run(f'sed -i "s/ALLOWED_HOSTS.*/ALLOWED_HOSTS = {site_name}/g" '+settings_path)
+    conn.run(f"sed -i 's/DEBUG = True/DEBUG = False/g' {settings_path}")
+    conn.run(f'sed -i "s/ALLOWED_HOSTS.*/ALLOWED_HOSTS = {site_name}/g" {settings_path}')
 
 
 def _update_static_files(conn):
-    conn.run(f'../virtualenv/bin/python3 manage.py collectstatic --noinput')
+    conn.run('../virtualenv/bin/python3 manage.py collectstatic --noinput')
 
 
 def _update_database(conn):
-    conn.run(f'../virtualenv/bin/python3 manage.py migrate --noinput')
+    conn.run('../virtualenv/bin/python3 manage.py migrate --noinput')
 
 
 deploy(conn)
@@ -275,7 +221,13 @@ deploy(conn)
 
 
 #安装调试gunicorn
+put_file('gunicorn-linux.zip',conn)
+conn.run('unzip gunicorn-linux.zip')
+conn.run(f'/home/{web_user}/sites/ylkjddtestweb/virtualenv/bin/pip3 install gunicorn --no-index --find-links=file:///home/{web_user}/gunicorn-linux')
+conn.run(f'rm -rf /home/{web_user}/gunicorn-linux')
+
+
 with conn.cd('/home/django_dd/sites/ylkjddtestweb/source'):
-    conn.run('../virtualenv/bin/pip3 install gunicorn')
-    conn.run('../virtualenv/bin/gunicorn superlists.wsgi:application')
-    # conn.run('../virtualenv/bin/gunicorn --bind unix:/tmp/www.caylxxkj.xyz.socket superlists.wsgi:application')
+    conn.run('ls -a')
+    conn.run('nohup ../virtualenv/bin/gunicorn --bind localhost:8000 superlists.wsgi:application &')
+
