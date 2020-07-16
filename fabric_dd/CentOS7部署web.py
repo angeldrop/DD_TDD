@@ -119,7 +119,7 @@ make_file_upload_and_delete(domain_name,strdd,f'/etc/nginx/sites-availiable/{dom
 excute_any(f'ln -s /etc/nginx/sites-availiable/{domain_name} /etc/nginx/sites-enabled/{domain_name}',conn)
 
 
-
+conn.run('systemctl enable nginx')    #设置为开机启动
 conn.run('systemctl restart nginx')
 
 
@@ -227,7 +227,38 @@ conn.run(f'/home/{web_user}/sites/ylkjddtestweb/virtualenv/bin/pip3 install guni
 conn.run(f'rm -rf /home/{web_user}/gunicorn-linux')
 
 
-with conn.cd('/home/django_dd/sites/ylkjddtestweb/source'):
-    conn.run('ls -a')
-    conn.run('nohup ../virtualenv/bin/gunicorn --bind localhost:8000 superlists.wsgi:application &')
+#切换到root账户安装gunicorn
+#安装systemd模式
+
+conn=Connection(host, user=user,connect_kwargs={"password": password})
+
+
+strdd='''
+[Unit]
+Description=Gunicorn server for www.caylxxkj.xyz
+
+[Service]
+Restart=on-failure
+User=django_dd
+WorkingDirectory=/home/django_dd/sites/ylkjddtestweb/source
+
+Environment=DJANGO_DEBUG_FALSE=y
+Environment=DJANGO_SECRET_KEY="1*b84qe7z%4v)(_ji01k^_xx2tkhs062zpsza9gpzl3rxdfhfv"
+Environment=SITENAME=www.caylxxkj.xyz
+Environment=EMAIL_PASSWORD=66Dan;12306666
+
+ExecStart=/home/django_dd/sites/ylkjddtestweb/virtualenv/bin/gunicorn \
+    --access-logfile access.log \
+    --error-logfile error.log \
+    superlists.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+'''
+
+make_file_upload_and_delete('gunicorn-www.caylxxkj.xyz.service',strdd,'/etc/systemd/system/gunicorn-www.caylxxkj.xyz.service',conn)
+
+conn.run('systemctl enable gunicorn-www.caylxxkj.xyz.service')    #设置为开机启动
+conn.run('systemctl restart gunicorn-www.caylxxkj.xyz.service')
+
 

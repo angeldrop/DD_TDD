@@ -491,7 +491,7 @@ conn.run(fr'sed -ri "{sed_str}" /var/lib/pgsql/12/data/postgresql.conf')
 
 
 #进入postgres用户部署应用，需要手工操作
-input("手工进入postgres配置参数，完成后回车！！！")
+# input("手工进入postgres配置参数，完成后回车！！！")
 #进入psql，并设置postgres密码，代码如下
 # su - postgres
 # psql
@@ -499,6 +499,12 @@ input("手工进入postgres配置参数，完成后回车！！！")
 # # 配置给django数据库
 # CREATE DATABASE superlist_dd;
 # \q
+command="ALTER USER postgres WITH PASSWORD 'Yl;123456';"
+excute_any(f'sudo -u postgres psql -c "{command}"',conn)
+command="CREATE DATABASE superlist_dd;"
+excute_any(f'sudo -u postgres psql -c "{command}"',conn)
+
+
 
 
 #需要拷贝原data文件夹到修改后数据库文件夹并修改权限
