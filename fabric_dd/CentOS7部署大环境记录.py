@@ -121,6 +121,7 @@ conn.run('hostname '+hostname)    #修改主机名称
 
 #升级sqlite3配置
 sq_name='sqlite-autoconf-3320300'
+conn.run(f'rm -rf /usr/local/src/{sq_name}/')
 put_file(f'{sq_name}.tar.gz',conn)
 conn.run(f'mv {sq_name}.tar.gz /usr/local/src/')
 with conn.cd('/usr/local/src/'):
@@ -164,6 +165,7 @@ conn.run('yum install  openssl-devel -y')    #fabric需要
 #安装Python3和pip3
 
 conn.run(f'mv {python_file_name}.tar.xz /usr/local/src/')
+conn.run(f'rm -rf /usr/local/src/{python_file_name}/')
 with conn.cd('/usr/local/src/'):
     conn.run(f'tar -xvf {python_file_name}.tar.xz')
     with conn.cd(f'{python_file_name}/'):
@@ -194,7 +196,7 @@ conn.run('pip3 install --upgrade pip')
 
 #安装fabric
 
-
+conn.run('rm -rf fabric-linux-CentOS7')
 put_file('fabric-linux-CentOS7.zip',conn)
 conn.run('unzip fabric-linux-CentOS7.zip')
 pip3_local_install(user,'fabric','fabric-linux-CentOS7')
@@ -205,13 +207,14 @@ pip3_local_install(user,'fabric','fabric-linux-CentOS7')
 
 #安装virtualenv
 
-
+conn.run('rm -rf virtualenv-linux-CentOS7')
 put_file('virtualenv-linux-CentOS7.zip',conn)
 conn.run('unzip virtualenv-linux-CentOS7.zip')
 pip3_local_install(user,'virtualenv','virtualenv-linux-CentOS7')
 
 
 #安装psycopg2，postgresql需要
+conn.run('rm -rf psycopg2')
 put_file('psycopg2.zip',conn)
 conn.run('unzip psycopg2.zip')
 pip3_local_install(user,'psycopg2-binary','psycopg2')
@@ -443,7 +446,7 @@ conn.run('systemctl restart sshd')
 
 #安装postgresql环境
 
-
+conn.run('rm -rf postgresql12-linux-CentOS7')
 put_file('postgresql12-linux-CentOS7.zip',conn)
 conn.run('unzip postgresql12-linux-CentOS7.zip')
 with conn.cd('postgresql12-linux-CentOS7'):
@@ -452,7 +455,7 @@ with conn.cd('postgresql12-linux-CentOS7'):
     conn.run('yum install postgresql12-12.3-5PGDG.rhel7.x86_64.rpm -y')
     conn.run('yum install postgresql12-server-12.3-5PGDG.rhel7.x86_64.rpm -y')
     conn.run('yum install postgresql12-contrib-12.3-5PGDG.rhel7.x86_64.rpm -y')
-conn.run('rm -rf postgresql-linux-CentOS7')
+conn.run('rm -rf postgresql12-linux-CentOS7')
     
 excute_any('/usr/pgsql-12/bin/postgresql-12-setup initdb',conn)    #初始化数据库
 # 加入开机启动并启动程序
