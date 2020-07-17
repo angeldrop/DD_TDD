@@ -1,38 +1,6 @@
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from .base import FunctionalTest
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
-import time,os
-import unittest
-from unittest import skip
-
-
-MAX_WAIT=10
-class FunctionalTest(StaticLiveServerTestCase):
-
-
-    def setUp(self):
-        self.browser=webdriver.Firefox()
-        staging_server=os.environ.get('STAGING_SERVER')
-        if staging_server:
-            self.live_server_url='http://'+staging_server
-
-    def tearDown(self):
-        self.browser.quit()
-
-
-    def wait_for_row_in_list_table(self,row_text):
-        start_time=time.time()
-        while True:
-            try:
-                table=self.browser.find_element_by_id('id_list_table')
-                rows=table.find_elements_by_tag_name('tr')
-                self.assertIn(row_text,[row.text for row in rows])
-                return
-            except (AssertionError,WebDriverException) as e:
-                if time.time()-start_time>MAX_WAIT:
-                    raise e
-                time.sleep(0.5)
 
 
 class NewVisitorTest(FunctionalTest):
@@ -127,55 +95,5 @@ class NewVisitorTest(FunctionalTest):
         #她访问那个URL，发现她的待办事项列表还在
 
         #她很满意，去睡觉了
-
-class LayoutAndStyingTest(FunctionalTest):
-    def test_layout_and_styling(self):
-        #伊迪丝听说有一个很酷的在线待办事项应用
-        #她去看了这个应用的首页
-        self.browser.get(self.live_server_url)
-        self.browser.set_window_size(1024,768)
-        
-        #她注意到输入框完美的居中显示
-        inputbox=self.browser.find_element_by_id('id_new_item')
-        self.assertAlmostEqual(
-            inputbox.location['x']+inputbox.size['width']/2,
-            512,
-            delta=10
-            )
-        
-        
-        #她在一个文本框中输入了“购买孔雀羽毛”
-        #伊迪丝的爱好是使用假蝇做饵钓鱼
-        inputbox.send_keys('购买孔雀羽毛')
-
-        #她按回车键后，页面更新了
-        #待办事项表格中显示了“1、购买孔雀羽毛”
-        inputbox.send_keys(Keys.ENTER)
-        self.wait_for_row_in_list_table('1:购买孔雀羽毛')
-        #输入框依然完美的居中显示
-        inputbox=self.browser.find_element_by_id('id_new_item')
-        self.assertAlmostEqual(
-            inputbox.location['x']+inputbox.size['width']/2,
-            512,
-            delta=10
-            )
-            
-            
-class ItemValidationTest(FunctionalTest):
-    @skip
-    def test_cannot_add_empty_list_items(self):
-        #伊迪丝访问首页，不小心提交了一个空待办事项
-        #输入框中没输入内容，她就按下了回车键
-
-        #首页刷新了，显示一个错误消息
-        #提示待办事项不能为空#她输入一些文字，然后再次提交，这次没问题了
-
-        #她有点儿调皮，又提交了一个空待办事项
-
-        #在清单页面她看到了一个类似的错误消息
-
-        #输入文字之后就没问题了
-        self.fail('writeme!')
-
 
      
