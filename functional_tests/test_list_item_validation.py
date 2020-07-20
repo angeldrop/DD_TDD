@@ -35,7 +35,7 @@ class ItemValidationTest(FunctionalTest):
         #输入文字之后就没问题了
         self.browser.find_element_by_id('id_new_item').send_keys('弄杯茶')
         self.browser.find_element_by_id('id_new_item').send_keys(Keys.ENTER)
-        self.wait_for_row_in_list_table('1:弄杯茶')
+        self.wait_for_row_in_list_table('2:弄杯茶')
         self.fail('非法值测试完了')
 
 
