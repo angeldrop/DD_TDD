@@ -12,7 +12,7 @@ class LayoutAndStyingTest(FunctionalTest):
         self.browser.set_window_size(1024,768)
         
         #她注意到输入框完美的居中显示
-        inputbox=self.browser.find_element_by_id('id_new_item')
+        inputbox=self.get_item_input_box()
         self.assertAlmostEqual(
             inputbox.location['x']+inputbox.size['width']/2,
             512,
@@ -29,7 +29,7 @@ class LayoutAndStyingTest(FunctionalTest):
         inputbox.send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1:购买孔雀羽毛')
         #输入框依然完美的居中显示
-        inputbox=self.browser.find_element_by_id('id_new_item')
+        inputbox=self.get_item_input_box()
         self.assertAlmostEqual(
             inputbox.location['x']+inputbox.size['width']/2,
             512,
