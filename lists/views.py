@@ -18,7 +18,7 @@ def view_list(request,list_id):
             item=Item(text=request.POST['item_text'],list=list_)
             item.full_clean()
             item.save()
-            return redirect(f'/lists/{list_id}/')
+            return redirect(list_)
         except ValidationError:
             error="你不能输入空项目"
     return render(request,'lists/list.html',{"error":error,'list':list_})
@@ -35,4 +35,4 @@ def new_list(request):
         list_.delete()
         error="你不能输入空项目"
         return render(request,'lists/home.html',{"error":error})
-    return redirect(f'/lists/{list_.id}/')
+    return redirect(list_)
