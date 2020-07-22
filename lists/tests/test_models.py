@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 # Create your tests here.
 
-class ListAndItemModelTest(TestCase):
+class ItemModelTest(TestCase):
     def test_saving_and_retrieving_items(self):
         list_=List()
         list_.save()
@@ -41,11 +41,6 @@ class ListAndItemModelTest(TestCase):
             item.full_clean()
     
     
-    def test_get_ablolute_url(self):
-        list_=List.objects.create()
-        self.assertEqual(list_.get_absolute_url(),f'/lists/{list_.id}/')
-    
-    
     def test_duplicate_items_are_invalid(self):
         list_=List.objects.create()
         Item.objects.create(list=list_,text='bla')
@@ -62,3 +57,22 @@ class ListAndItemModelTest(TestCase):
         item.full_clean()    #不该抛出异常
     
 
+    def test_default_text(self):
+        item=Item()
+        self.assertEqual(item.text,'')
+        
+        
+    def test_item_is_related_to_list(self):
+        list_=List.objects.create()
+        item=Item()
+        item.list=list_
+        item.save()
+        self.assertIn(item,list_.item_set.all())
+
+class ListModelTest(TestCase):
+    
+    
+    def test_get_ablolute_url(self):
+        list_=List.objects.create()
+        self.assertEqual(list_.get_absolute_url(),f'/lists/{list_.id}/')
+    
