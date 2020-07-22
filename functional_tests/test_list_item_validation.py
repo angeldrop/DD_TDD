@@ -50,4 +50,22 @@ class ItemValidationTest(FunctionalTest):
         self.fail('非法值测试完了')
 
 
+    def test_cannot_add_duplicate_items(self):
+        #伊迪丝访问首页，新建一个清单
+        self.browser.get(self.live_server_url)
+        self.get_item_input_box().send_keys('买牛奶')
+        self.get_item_input_box().send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1:买牛奶')
+        
+        #他不小心输入了一个重复的代办事项
+        self.get_item_input_box().send_keys('买牛奶')
+        self.get_item_input_box().send_keys(Keys.ENTER)
+        
+        #他看到了一条用帮助的错误消息
+        self.wait_for(lambda:self.assertEqual(
+            self.browser.find_element_by_css_selector('.has-error').text,
+            "你输入了重复的项目"
+        ))
+
+
      
