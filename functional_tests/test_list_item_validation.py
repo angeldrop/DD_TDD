@@ -64,7 +64,7 @@ class ItemValidationTest(FunctionalTest):
         #他看到了一条用帮助的错误消息
         self.wait_for(lambda:self.assertEqual(
             self.browser.find_element_by_css_selector('.has-error').text,
-            "你输入了重复的项目"
+            "此清单中已经有此项目了，不得重复！！"
         ))
 
 
