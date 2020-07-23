@@ -66,32 +66,31 @@ class ItemValidationTest(FunctionalTest):
         
         #他看到了一条用帮助的错误消息
         self.wait_for(lambda:self.assertEqual(
-            self.browser.find_element_by_css_selector('.has-error').text,
+            self.get_error_element().text,
             "此清单中已经有此项目了，不得重复！！"
         ))
 
 
-     def test_error_messages_are_cleared_on_input(self):
+    def test_error_messages_are_cleared_on_input(self):
         #伊迪丝访问首页，新建一个清单
         self.browser.get(self.live_server_url)
         self.get_item_input_box().send_keys('买花花')
         self.get_item_input_box().send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1:买花花')
-        
+
         self.get_item_input_box().send_keys('买花花')
         self.get_item_input_box().send_keys(Keys.ENTER)
-        
+
         self.wait_for(lambda:self.assertTrue(
-            self.browser.find_element_by_css_selector('.has-error').is_displayed()
+            self.get_error_element().is_displayed()
         ))
-        
-        
+
+
         #为了消除错误，他开始输入内容
-        self.browser.get(self.live_server_url)
         self.get_item_input_box().send_keys('买扥的')
-        
-        
+
+
         #看到错误消失，他满意了
         self.wait_for(lambda:self.assertFalse(
-            self.browser.find_element_by_css_selector('.has-error').is_displayed()
+            self.get_error_element().is_displayed()
         ))
