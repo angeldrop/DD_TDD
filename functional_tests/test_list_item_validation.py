@@ -50,7 +50,6 @@ class ItemValidationTest(FunctionalTest):
         self.get_item_input_box().send_keys(Keys.ENTER)
         self.wait_for_row_in_list_table('1:买牛奶')
         self.wait_for_row_in_list_table('2:弄杯茶')
-        self.fail('非法值测试完了')
 
 
     def test_cannot_add_duplicate_items(self):
